@@ -1,0 +1,27 @@
+# nginx proxy address - http://172.17.0.1:8090
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "1"
+
+services:
+  poste:
+    image: analogic/poste.io:latest
+    container_name: poste-app
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - poste
+    ports:
+      - "8090:80"
+    environment:
+      TZ: ${TZ:-America/New_York}
+    volumes:
+      - ./rootfs/config/poste:/config
+      - ./rootfs/data/poste:/data
+
+networks:
+  poste:
+    external: false
