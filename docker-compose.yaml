@@ -19,8 +19,8 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
     volumes:
-      - ./rootfs/config/poste:/config
-      - ./rootfs/data/poste:/data
+      - ./volumes/config/poste:/config
+      - ./volumes/data/poste:/data
 
 networks:
   poste:
