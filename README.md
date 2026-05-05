@@ -45,8 +45,8 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/config/poste` - Data storage
-- `./rootfs/data/poste` - Data storage
+- `./volumes/config/poste` - Data storage
+- `./volumes/data/poste` - Data storage
 
 ## 🔍 Logging
 
