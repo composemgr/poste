@@ -1,5 +1,6 @@
 # nginx proxy address - http://172.17.0.1:8090
 
+name: poste
 x-logging: &default-logging
   driver: json-file
   options:
@@ -9,19 +10,32 @@ x-logging: &default-logging
 services:
   poste:
     image: analogic/poste.io:latest
+    pull_policy: always
     container_name: poste-app
-    restart: unless-stopped
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
     logging: *default-logging
     networks:
       - poste
     ports:
-      - "8090:80"
+      - "172.17.0.1:8090:80"
+      - "25:25"
+      - "110:110"
+      - "143:143"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+      - "995:995"
     environment:
       TZ: ${TZ:-America/New_York}
+      HTTPS: "OFF"
+      VIRTUAL_HOST: ${BASE_HOST_NAME:-localhost}.${BASE_DOMAIN_NAME:-example.com}
+      DISABLE_CLAMAV: ${DISABLE_CLAMAV:-TRUE}
+      DISABLE_RSPAMD: ${DISABLE_RSPAMD:-FALSE}
     volumes:
-      - ./volumes/config/poste:/config
       - ./volumes/data/poste:/data
 
 networks:
   poste:
+    name: poste
     external: false
