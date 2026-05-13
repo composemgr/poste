@@ -17,6 +17,8 @@ services:
     logging: *default-logging
     networks:
       - poste
+      - proxy
+      - cloudflare
     ports:
       - "172.17.0.1:8090:80"
       - "25:25"
@@ -32,10 +34,32 @@ services:
       VIRTUAL_HOST: ${BASE_HOST_NAME:-localhost}.${BASE_DOMAIN_NAME:-example.com}
       DISABLE_CLAMAV: ${DISABLE_CLAMAV:-TRUE}
       DISABLE_RSPAMD: ${DISABLE_RSPAMD:-FALSE}
+      CONTAINER_NAME: poste-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     volumes:
       - ./volumes/data/poste:/data
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://poste-app:80'
+      - 'cloudflare.hostname=poste.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.poste-app.entrypoints=http'
+      - 'traefik.http.routers.poste-app-secure.tls=true'
+      - 'traefik.http.routers.poste-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.poste-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.poste-app.middlewares=poste-app-https-redirect'
+      - 'traefik.http.routers.poste-app-secure.entrypoints=https'
+      - 'traefik.http.routers.poste-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.poste-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.poste-app-secure.service=poste-app'
+      - 'traefik.http.services.poste-app.loadbalancer.server.port=80'
 
 networks:
   poste:
     name: poste
     external: false
+  proxy:
+    external: true
+  cloudflare:
+    external: true
