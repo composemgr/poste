@@ -1,0 +1,51 @@
+name: poste
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+
+  poste:
+    image: analogic/poste.io:latest
+    container_name: poste-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: poste-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+      # Web interface
+      HTTPS: 'OFF'
+      # Bundled anti-virus and anti-spam scanners
+      DISABLE_CLAMAV: ${DISABLE_CLAMAV:-TRUE}
+      DISABLE_RSPAMD: ${DISABLE_RSPAMD:-FALSE}
+    volumes:
+      - './volumes/data/poste:/data:z'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik'
+      - 'traefik.http.routers.poste-poste.entrypoints=http'
+      - 'traefik.http.routers.poste-poste.rule=Host(${BASE_HOST_NAME:-$HOSTNAME})'
+      - 'traefik.http.routers.poste-poste.middlewares=poste-poste-https-redirect'
+      - 'traefik.http.middlewares.poste-poste-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.poste-poste-secure.entrypoints=https'
+      - 'traefik.http.routers.poste-poste-secure.rule=Host(${BASE_HOST_NAME:-$HOSTNAME})'
+      - 'traefik.http.routers.poste-poste-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.poste-poste-secure.service=poste-poste'
+      - 'traefik.http.services.poste-poste.loadbalancer.server.port=80'
+    networks:
+      - poste
+      - traefik
+
+networks:
+  poste:
+    name: poste
+    external: false
+  traefik:
+    name: traefik
+    external: true

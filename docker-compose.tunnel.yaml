@@ -1,0 +1,43 @@
+name: poste
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+
+  poste:
+    image: analogic/poste.io:latest
+    container_name: poste-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: poste-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+      # Web interface
+      HTTPS: 'OFF'
+      # Bundled anti-virus and anti-spam scanners
+      DISABLE_CLAMAV: ${DISABLE_CLAMAV:-TRUE}
+      DISABLE_RSPAMD: ${DISABLE_RSPAMD:-FALSE}
+    volumes:
+      - './volumes/data/poste:/data:z'
+    labels:
+      - 'cloudflare.enable=true'
+      - 'cloudflare.service=http://poste-app:80'
+      - 'cloudflare.hostname=${BASE_HOST_NAME:-$HOSTNAME}'
+    networks:
+      - poste
+      - cloudflare
+
+networks:
+  poste:
+    name: poste
+    external: false
+  cloudflare:
+    name: cloudflare
+    external: true
