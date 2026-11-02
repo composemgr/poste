@@ -24,6 +24,8 @@ services:
       # Bundled anti-virus and anti-spam scanners
       DISABLE_CLAMAV: ${DISABLE_CLAMAV:-TRUE}
       DISABLE_RSPAMD: ${DISABLE_RSPAMD:-FALSE}
+    ports:
+      - '4190:4190'
     volumes:
       - './volumes/data/poste:/data:z'
     labels:
