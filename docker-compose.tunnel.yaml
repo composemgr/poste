@@ -24,6 +24,12 @@ services:
       # Bundled anti-virus and anti-spam scanners
       DISABLE_CLAMAV: ${DISABLE_CLAMAV:-TRUE}
       DISABLE_RSPAMD: ${DISABLE_RSPAMD:-FALSE}
+    healthcheck:
+      test: ['CMD-SHELL', '/healthcheck/server.sh || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     ports:
       - '4190:4190'
       - '110:110'
